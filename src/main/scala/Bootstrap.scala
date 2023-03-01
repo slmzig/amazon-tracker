@@ -41,7 +41,7 @@ object Bootstrap extends IOApp {
     val priceChangeRepository  = new PriceChangeRepositoryImpl[IO](transactor)
     val subscriptionRepository = new SubscriptionRepositoryImpl[IO](transactor)
     val service                = new SubscriptionServiceImpl[IO](subscriptionRepository, priceChangeRepository, parser)
-    val priseTracker           = new PriceTrackerServiceImpl[IO](priceChangeRepository)
+    val priseTracker           = new PriceTrackerServiceImpl[IO](priceChangeRepository, parser)
     val migration              = new Database(appConfig)
     val apis = Router(
       "/" -> SubscriptionRoutes.make[IO](service, priseTracker)
