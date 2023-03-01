@@ -51,7 +51,7 @@ object Bootstrap extends IOApp {
       .withHttpApp(apis)
       .serve
 
-    val stream: Stream[IO, Unit] = Stream.repeatEval(priseTracker.trackPrices()).metered(1.seconds).repeat
+    val stream: Stream[IO, Unit] = Stream.repeatEval(priseTracker.trackPrices()).metered(appConfig.scheduler.delay).repeat
     val app: IO[Unit]            = (httpServer.parZip(stream.drain)).compile.drain
 
     Logger[IO].info("start application") >>
