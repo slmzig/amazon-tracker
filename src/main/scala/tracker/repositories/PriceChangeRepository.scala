@@ -36,11 +36,9 @@ class PriceChangeRepositoryImpl[F[_]: Async](xa: Transactor[F]) extends PriceCha
     selectSql.transact(xa)
   }
 
-//  override def findAll(): F[List[Subscription]] = Applicative[F].pure(List.empty[Subscription])
   override def findAll(): F[List[Subscription]] = {
     val selectSql =
-//      sql"SELECT id, url FROM subscriptions WHERE checked_at >= NOW() - INTERVAL '3 months'"
-      sql"SELECT id, url FROM subscriptions"
+      sql"SELECT id, url FROM subscriptions WHERE checked_at >= NOW() - INTERVAL '3 months'"
         .query[(UUID, String)]
         .to[List]
         .map(_.map { case (subscriptionId, url) => Subscription(subscriptionId, url) })

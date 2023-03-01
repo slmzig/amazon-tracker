@@ -8,7 +8,8 @@ import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl._
-import tracker.models.{PriceHistory, PriceNotFound, SubscriptionUrl}
+import tracker.models.errors.{BuyBoxNotFound, CurrentlyUnavailable, PriceNotFoundInText}
+import tracker.models.{PriceHistory, SubscriptionUrl}
 import tracker.services.{PriceTrackerServiceImpl, SubscriptionService}
 
 object SubscriptionRoutes {
@@ -25,14 +26,18 @@ object SubscriptionRoutes {
       case req @ POST -> Root / "subscriptions" =>
         val result = for {
           subscription <- req.decodeJson[SubscriptionUrl]
-          _            <- trackerServiceImpl.getProductPrice(subscription.url)
           id           <- subscriptionService.subscribe(subscription.url)
         } yield id
 
         result.flatMap(r => Ok(r.asJson)).handleErrorWith {
-          case PriceNotFound => BadRequest("this product is temporary unavailable")
+          case CurrentlyUnavailable =>
+            BadRequest("Currently unavailable. We don't know when or if this item will be back in stock.")
+          case BuyBoxNotFound =>
+            BadRequest("Box with price is not available")
+          case PriceNotFoundInText =>
+            BadRequest("We are not able to parse prise")
           case ex: Throwable =>
-            BadRequest(ex.getMessage)
+            BadRequest("Something went wrong during request")
         }
 
       case GET -> Root / "subscriptions" / UUIDVar(subscriptionId) =>

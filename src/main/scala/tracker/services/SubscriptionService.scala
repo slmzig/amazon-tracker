@@ -17,13 +17,16 @@ trait SubscriptionService[F[_]] {
 class SubscriptionServiceImpl[F[_]: Monad: Concurrent](
     subscriptionRepository: SubscriptionRepository[F],
     priceChangeRepository: PriceChangeRepository[F],
-)
-    extends SubscriptionService[F] {
+    parser: Parser[F],
+) extends SubscriptionService[F] {
 
   override def subscribe(url: String): F[UUID] =
     for {
-      //      subscription <- blocker.delay(Subscription(url))
+      document       <- parser.connect(url)
+      _              <- parser.checkAvailability(document)
+      price          <- parser.getPriceFromBuyBox(document)
       subscriptionId <- subscriptionRepository.create(UUID.randomUUID(), url: String)
+      _              <- priceChangeRepository.addPriceHistory(subscriptionId, price)
     } yield subscriptionId
 
   override def unsubscribe(subscriptionId: UUID): F[Unit] =

@@ -7,7 +7,7 @@ import org.http4s.implicits._
 import org.http4s.server.Router
 import tracker.repositories.{PriceChangeRepositoryImpl, SubscriptionRepositoryImpl}
 import tracker.server.SubscriptionRoutes
-import tracker.services.{Database, PriceTrackerServiceImpl, SubscriptionServiceImpl}
+import tracker.services.{Database, ParserImpl, PriceTrackerServiceImpl, SubscriptionServiceImpl}
 import org.typelevel.log4cats.Logger
 import cats.syntax.all._
 import cats.implicits._
@@ -37,9 +37,10 @@ object Bootstrap extends IOApp {
       appConfig.database.password
     )
 
+    val parser                 = new ParserImpl[IO]()
     val priceChangeRepository  = new PriceChangeRepositoryImpl[IO](transactor)
     val subscriptionRepository = new SubscriptionRepositoryImpl[IO](transactor)
-    val service                = new SubscriptionServiceImpl[IO](subscriptionRepository, priceChangeRepository)
+    val service                = new SubscriptionServiceImpl[IO](subscriptionRepository, priceChangeRepository, parser)
     val priseTracker           = new PriceTrackerServiceImpl[IO](priceChangeRepository)
     val migration              = new Database(appConfig)
     val apis = Router(
