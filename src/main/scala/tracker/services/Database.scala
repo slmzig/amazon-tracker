@@ -1,20 +1,32 @@
 package tracker.services
 
-import cats.effect.IO
-import com.typesafe.config.Config
+import cats.effect.{Async, IO, Sync}
+import cats.syntax.functor._
+import doobie.Transactor
+import doobie.util.transactor.Transactor.Aux
 import org.flywaydb.core.Flyway
 import tracker.models.AppConfig
 
-import scala.concurrent.{ExecutionContext, Future}
+object Database {
+  def dbTransactor[F[_]: Async](appConfig: AppConfig): Aux[IO, Unit] =
+    Transactor.fromDriverManager[IO](
+      appConfig.database.driver,
+      appConfig.database.url,
+      appConfig.database.user,
+      appConfig.database.password
+    )
 
-class Database(config: AppConfig) {
-  def migrate():IO[Unit] =
-    IO {
-      Flyway
-        .configure()
-        .dataSource(config.database.url, config.database.user, config.database.password)
-        .locations(config.database.path)
-        .load()
-        .migrate()
-    }
+  /**
+    * Runs the flyway migration
+    */
+  def initializeDb[F[_]](appConfig: AppConfig)(implicit S: Sync[F]): F[Unit] =
+    S.delay {
+        val fw: Flyway =
+          Flyway
+            .configure()
+            .dataSource(appConfig.database.url, appConfig.database.user, appConfig.database.password)
+            .load()
+        fw.migrate()
+      }
+      .as(())
 }

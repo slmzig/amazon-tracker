@@ -3,16 +3,16 @@ package tracker.services
 import cats.effect.Sync
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
-import tracker.repositories.PriceChangeRepository
+import tracker.repositories.PriceChangeRepositoryAlgebra
 
 import java.util.UUID
 
-trait PriceTrackerService[F[_]] {
+trait PriceTrackerAlgebra[F[_]] {
   def trackPrices(): F[Unit]
 }
 
-class PriceTrackerServiceImpl[F[_]: Sync: Logger](priceChangeRepository: PriceChangeRepository[F], parser: Parser[F])
-    extends PriceTrackerService[F] {
+class PriceTrackerService[F[_]: Sync: Logger](priceChangeRepository: PriceChangeRepositoryAlgebra[F], parser: ParserAlgebra[F])
+    extends PriceTrackerAlgebra[F] {
 
   def trackPrices(): F[Unit] =
     for {
@@ -33,4 +33,12 @@ class PriceTrackerServiceImpl[F[_]: Sync: Logger](priceChangeRepository: PriceCh
       _        <- priceChangeRepository.addPriceHistory(subscriptionId, price) // TODO insert prices with batches for less call to db
     } yield ()
 
+}
+
+object PriceTrackerService {
+  def apply[F[_]: Sync: Logger](
+                                 priceChangeRepository: PriceChangeRepositoryAlgebra[F],
+                                 parser: ParserAlgebra[F]
+  ): PriceTrackerService[F] =
+    new PriceTrackerService[F](priceChangeRepository, parser)
 }

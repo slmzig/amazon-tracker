@@ -10,13 +10,12 @@ import org.http4s.circe._
 import org.http4s.dsl._
 import tracker.models.errors.{BuyBoxNotFound, CurrentlyUnavailable, PriceNotFoundInText}
 import tracker.models.{PriceHistory, SubscriptionUrl}
-import tracker.services.{PriceTrackerServiceImpl, SubscriptionService}
+import tracker.services.SubscriptionAlgebra
 
 object SubscriptionRoutes {
 
   def make[F[_]: Monad: Concurrent](
-      subscriptionService: SubscriptionService[F],
-      trackerServiceImpl: PriceTrackerServiceImpl[F]
+      subscriptionService: SubscriptionAlgebra[F]
   ): HttpRoutes[F] = {
     val dsl = Http4sDsl[F]
     import dsl._

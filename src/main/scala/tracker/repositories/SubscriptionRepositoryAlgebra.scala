@@ -8,12 +8,12 @@ import doobie.postgres.implicits._
 
 import java.util.UUID
 
-trait SubscriptionRepository[F[_]] {
+trait SubscriptionRepositoryAlgebra[F[_]] {
   def create(id: UUID, url: String): F[UUID]
   def delete(id: UUID): F[Unit]
 }
 
-class SubscriptionRepositoryImpl[F[_]: Async](xa: Transactor[F]) extends SubscriptionRepository[F] {
+class SubscriptionRepository[F[_]: Async](xa: Transactor[F]) extends SubscriptionRepositoryAlgebra[F] {
 
   override def create(id: UUID, url: String): F[UUID] = {
     val insertSql =
@@ -41,4 +41,8 @@ class SubscriptionRepositoryImpl[F[_]: Async](xa: Transactor[F]) extends Subscri
           Async[F].raiseError(e)
       }
   }
+}
+
+object SubscriptionRepository {
+  def apply[F[_]: Async](xa: Transactor[F]) = new SubscriptionRepository[F](xa)
 }

@@ -1,6 +1,5 @@
 package tracker.repositories
 
-import cats.{Applicative, Monad}
 import cats.effect.Async
 import cats.implicits._
 import doobie._
@@ -11,13 +10,13 @@ import doobie.postgres.implicits._
 import java.time.LocalDateTime
 import java.util.UUID
 
-trait PriceChangeRepository[F[_]] {
+trait PriceChangeRepositoryAlgebra[F[_]] {
   def findAll(): F[List[Subscription]]
   def findBySubscriptionId(subscriptionId: UUID): F[List[PriceHistory]]
   def addPriceHistory(id: UUID, price: BigDecimal): F[Unit]
 }
 
-class PriceChangeRepositoryImpl[F[_]: Async](xa: Transactor[F]) extends PriceChangeRepository[F] {
+class PriceChangeRepository[F[_]: Async](xa: Transactor[F]) extends PriceChangeRepositoryAlgebra[F] {
 
   override def addPriceHistory(subscription_id: UUID, price: BigDecimal): F[Unit] = {
     val insertSql =
@@ -45,4 +44,7 @@ class PriceChangeRepositoryImpl[F[_]: Async](xa: Transactor[F]) extends PriceCha
 
     selectSql.transact(xa)
   }
+}
+object PriceChangeRepository {
+  def apply[F[_]: Async](xa: Transactor[F]) = new PriceChangeRepository[F](xa)
 }
