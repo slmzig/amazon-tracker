@@ -9,7 +9,7 @@ import org.http4s.circe._
 import org.http4s.dsl._
 import tracker.models.errors.{BuyBoxNotFound, CurrentlyUnavailable, PriceNotFoundInText}
 
-trait Routes {
+private[server] trait Routes {
   implicit class FOps[F[_]: Concurrent, A](val value: F[A]) {
     def response(implicit encoder: Encoder[A]): F[Response[F]] = {
       val dsl: Http4sDsl[F] with RequestDslBinCompat = Http4sDsl[F]
