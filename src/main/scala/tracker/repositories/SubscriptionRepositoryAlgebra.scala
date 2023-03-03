@@ -5,6 +5,8 @@ import cats.implicits._
 import doobie._
 import doobie.implicits._
 import doobie.postgres.implicits._
+import org.typelevel.log4cats.{Logger, SelfAwareStructuredLogger}
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.util.UUID
 
@@ -13,8 +15,9 @@ trait SubscriptionRepositoryAlgebra[F[_]] {
   def delete(id: UUID): F[Unit]
 }
 
-class SubscriptionRepository[F[_]: Async](xa: Transactor[F]) extends SubscriptionRepositoryAlgebra[F] {
+class SubscriptionRepository[F[_]: Async](xa: Transactor[F]) extends SubscriptionRepositoryAlgebra[F] with DBOps {
 
+  implicit val logger: SelfAwareStructuredLogger[F] = Slf4jLogger.getLogger[F]
   override def create(id: UUID, url: String): F[UUID] = {
     val insertSql =
       sql"INSERT INTO subscriptions (id, url) VALUES ($id, $url) RETURNING id"
@@ -23,10 +26,7 @@ class SubscriptionRepository[F[_]: Async](xa: Transactor[F]) extends Subscriptio
 
     insertSql
       .transact(xa)
-      .handleErrorWith {
-        case e =>
-          Async[F].raiseError(e)
-      }
+      .handleAndLog
   }
 
   override def delete(id: UUID): F[Unit] = {
@@ -36,10 +36,7 @@ class SubscriptionRepository[F[_]: Async](xa: Transactor[F]) extends Subscriptio
     deleteSql
       .transact(xa)
       .void
-      .handleErrorWith {
-        case e =>
-          Async[F].raiseError(e)
-      }
+      .handleAndLog
   }
 }
 
