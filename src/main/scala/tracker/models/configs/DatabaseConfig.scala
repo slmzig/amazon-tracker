@@ -1,4 +1,4 @@
-package tracker.models
+package tracker.models.configs
 
 case class DatabaseConfig(
     driver: String,

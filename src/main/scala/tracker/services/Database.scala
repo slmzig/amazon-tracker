@@ -5,7 +5,7 @@ import cats.syntax.functor._
 import doobie.Transactor
 import doobie.util.transactor.Transactor.Aux
 import org.flywaydb.core.Flyway
-import tracker.models.AppConfig
+import tracker.models.configs.AppConfig
 
 object Database {
   def dbTransactor[F[_]: Async](appConfig: AppConfig): Aux[IO, Unit] =

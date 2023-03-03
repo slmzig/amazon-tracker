@@ -8,7 +8,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
-import tracker.models.AppConfig
+import tracker.models.configs.AppConfig
 import tracker.repositories.{PriceChangeRepository, SubscriptionRepository}
 import tracker.server.SubscriptionRoutes
 import tracker.services.{Database, Parser, PriceTrackerService, SubscriptionService}
