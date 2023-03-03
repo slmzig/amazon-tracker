@@ -1,3 +1,5 @@
+package tracker
+
 import cats.effect._
 import doobie.WeakAsync.doobieWeakAsyncForAsync
 import fs2._
